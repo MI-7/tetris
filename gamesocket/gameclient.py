@@ -100,6 +100,18 @@ def listroom():
         return rooms[1:]
 
 
+def queryopponent(roomname):
+    s = createsocket(SERVER_HOST, SERVER_PORT)
+    if s is None:
+        sys.exit(-1)
+
+    response = sendcommand(s, ''.join(['queryopponent', ' ', roomname]))
+
+    s.close()
+
+    return response
+
+
 if __name__ == "__main__":
     login('leon')
     print(listroom())
@@ -108,4 +120,7 @@ if __name__ == "__main__":
     createroom('SNAP', 'leon')
     print(joinroom('SNAP', 'jane'))
     print(joinroom('SNAP2', 'john'))
+    createroom('SNAP2', 'leon2')
     print(listroom())
+    print(queryopponent('SNAP'))
+    print(queryopponent('SNAP2'))

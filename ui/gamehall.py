@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import QMainWindow, QGridLayout, QLabel, QPushButton, QListWidget, QLineEdit, QWidget
 from gamesocket.gameclient import *
+from ui.gamewindow import *
 
 
 class MainWindow(QMainWindow):
@@ -15,7 +16,8 @@ class MainWindow(QMainWindow):
         # don't refresh, just go to next window
         # self.refresh_room()
         if response == SERVER_RESPONSE_SUCCESS:
-            print("yeah")
+            self.gamewindow = GameWindow(uname, '', roomname)
+            self.gamewindow.show()
 
 
     def refresh_room(self):
@@ -29,8 +31,12 @@ class MainWindow(QMainWindow):
 
 
     def join_room(self):
-        # roomname = self.lst_rooms.selection
-        pass
+        roomname = self.lst_rooms.currentItem().text()
+        uname = self.text_user.text()
+        response = joinroom(roomname, uname)
+        if response == SERVER_RESPONSE_SUCCESS:
+            self.gamewindow = GameWindow('', uname, roomname)
+            self.gamewindow.show()
 
 
     def initUI(self):

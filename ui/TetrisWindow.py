@@ -182,7 +182,7 @@ class TetrisBoard(QFrame):
 
         elif key == Qt.Key_Up:
             print(self.curX, self.curY)
-            self.tryMove(self.curPiece.rotateLeft(), self.curX, self.curY)
+            print(self.tryMove(self.curPiece.rotateLeft(), self.curX, self.curY))
 
         elif key == Qt.Key_Space:
             self.dropDown()
@@ -484,6 +484,7 @@ class Shape(object):
             result.setY(i, self.x(i))
 
         return result
+
 
 if __name__ == '__main__':
     app = QApplication([])

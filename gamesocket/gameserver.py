@@ -73,6 +73,21 @@ class GameClientHandler(socketserver.BaseRequestHandler):
 
             # the opponent is now users[0]
             ret_seq = userop[users[0]]
+        elif command == 'queryopponent':
+            tlog(MDEBUG, "data=", data, "; ", "command=", command)
+            roomname = data[1]
+
+            if roomname not in rooms.keys():
+                tlog(MDEBUG, "room does not exist: " + roomname)
+                self.request.sendall(b'2 room does not exist')
+                return
+
+            tlog(MDEBUG, rooms)
+            response = ''
+            if len(rooms[roomname]) == 2:
+                response = rooms[roomname][1]
+
+            self.request.sendall(bytes(response, 'utf-8'))
 
         # just send back the same data, but upper-cased
         # self.request.sendall(self.data.upper())
