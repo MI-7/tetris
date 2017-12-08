@@ -172,6 +172,18 @@ def getshapes(uname):
     return response
 
 
+def submitkeyseq(uname, oppo, keyseq):
+    s = createsocket(SERVER_HOST, SERVER_PORT)
+    if s is None:
+        sys.exit(-1)
+
+    response = sendcommand(s, ''.join(['submitkeyseq', ' ', uname, ' ', oppo, ' ', keyseq]))
+
+    s.close()
+
+    return response
+
+
 if __name__ == "__main__":
     login('leon')
     print(listroom())
@@ -190,3 +202,6 @@ if __name__ == "__main__":
     print(submitshapes('leon', '0123495858'))
     print(getshapes('leon'))
     print(getshapes('leon'))
+    print(submitkeyseq('leon', 'jane', '01230123'))
+    print(submitkeyseq('jane', 'leon', '32103210'))
+    print(submitkeyseq('leon', 'jane', '01010101'))

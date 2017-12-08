@@ -63,19 +63,6 @@ class GameClientHandler(socketserver.BaseRequestHandler):
                 self.request.sendall(bytes(resp, "utf-8"))
             else:
                 self.request.sendall(b'3 no rooms available')
-        elif command == "operation":
-            tlog(MDEBUG, "data=", data, "; ", "command=", command)
-            roomname = data[1]
-            uname = data[2]
-            keyseq = data[3]
-
-            userop[uname] = keyseq
-
-            users = rooms[roomname][:]
-            users.remove(uname)
-
-            # the opponent is now users[0]
-            ret_seq = userop[users[0]]
         elif command == 'queryopponent':
             tlog(MDEBUG, "data=", data, "; ", "command=", command)
             roomname = data[1]
@@ -142,6 +129,17 @@ class GameClientHandler(socketserver.BaseRequestHandler):
             response = bytes(shapes[uname], 'utf-8')
             shapes[uname] = ''
             self.request.sendall(response)
+        elif command == 'submitkeyseq':
+            tlog(MDEBUG, "data=", data, "; ", "command=", command)
+            uname = data[1]
+            oppo = data[2]
+            keyseq = data[3]
+
+            userop[uname] = keyseq
+
+            response = userop[oppo]
+
+            self.request.sendall(bytes(response, 'utf-8'))
 
         # just send back the same data, but upper-cased
         # self.request.sendall(self.data.upper())

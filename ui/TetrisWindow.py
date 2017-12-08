@@ -20,37 +20,6 @@ from PyQt5.QtGui import QPainter, QColor
 import sys, random
 
 
-class TetrisWindow(QMainWindow):
-    def __init__(self):
-        super().__init__()
-
-        self.initUI()
-
-    def initUI(self):
-        '''initiates application UI'''
-
-        self.tboard = TetrisBoard(self)
-        self.setCentralWidget(self.tboard)
-
-        self.statusbar = self.statusBar()
-        self.tboard.msg2Statusbar[str].connect(self.statusbar.showMessage)
-
-        self.tboard.start()
-
-        self.resize(180, 380)
-        self.center()
-        self.setWindowTitle('Tetris')
-        self.show()
-
-    def center(self):
-        '''centers the window on the screen'''
-
-        screen = QDesktopWidget().screenGeometry()
-        size = self.geometry()
-        self.move((screen.width() - size.width()) / 2,
-                  (screen.height() - size.height()) / 2)
-
-
 class TetrisBoard(QFrame):
     msg2Statusbar = pyqtSignal(str)
     outofshape_signal = pyqtSignal()
@@ -58,6 +27,12 @@ class TetrisBoard(QFrame):
     BoardWidth = 10
     BoardHeight = 22
     Speed = 300
+
+    KeyMap = {Qt.Key_Left: 0,
+              Qt.Key_Right: 1,
+              Qt.Key_Up: 2,
+              Qt.Key_Down: 3,
+              Qt.Key_Space: 4}
 
     def __init__(self, parent, is_main_board):
         super().__init__(parent)
@@ -81,14 +56,15 @@ class TetrisBoard(QFrame):
         self.isPaused = False
         self.clearBoard()
 
-        self.shapes = [] # self.generate_random_shapes()
+        self.shapes = []  # self.generate_random_shapes()
         self.backup_shapes = []
+
+        self.key_sequence = []
 
     def generate_random_shapes(self):
         shapes = [Shape() for i in range(100)]
         [shape.setRandomShape() for shape in shapes]
         return shapes
-
 
     def shapeAt(self, x, y):
         '''determines shape at the board position'''
@@ -121,7 +97,7 @@ class TetrisBoard(QFrame):
         self.numLinesRemoved = 0
         self.clearBoard()
 
-        self.msg2Statusbar.emit(str(self.numLinesRemoved))
+        # self.msg2Statusbar.emit(str(self.numLinesRemoved))
 
         self.newPiece()
         self.timer.start(TetrisBoard.Speed, self)
@@ -173,36 +149,6 @@ class TetrisBoard(QFrame):
                                 boardTop + (TetrisBoard.BoardHeight - y - 1) * self.squareHeight(),
                                 self.curPiece.shape())
 
-    def handleKeyPress(self, key):
-        if key == Qt.Key_P:
-            self.pause()
-            return
-
-        if self.isPaused:
-            return
-
-        elif key == Qt.Key_Left:
-            self.tryMove(self.curPiece, self.curX - 1, self.curY)
-
-        elif key == Qt.Key_Right:
-            self.tryMove(self.curPiece, self.curX + 1, self.curY)
-
-        elif key == Qt.Key_Down:
-            self.tryMove(self.curPiece.rotateRight(), self.curX, self.curY)
-
-        elif key == Qt.Key_Up:
-            print(self.curX, self.curY)
-            print(self.tryMove(self.curPiece.rotateLeft(), self.curX, self.curY))
-
-        elif key == Qt.Key_Space:
-            self.dropDown()
-
-        elif key == Qt.Key_D:
-            self.oneLineDown()
-
-        else:
-            pass
-            # super(TetrisBoard, self).keyPressEvent(event)
 
     def keyPressEvent(self, event):
         '''processes key press events'''
@@ -212,8 +158,41 @@ class TetrisBoard(QFrame):
             return
 
         key = event.key()
-        self.handleKeyPress(key)
 
+        if key == Qt.Key_P:
+            self.pause()
+            return
+
+        if self.isPaused:
+            return
+
+        elif key == Qt.Key_Left:
+            self.key_sequence.append(self.KeyMap[key])
+            self.tryMove(self.curPiece, self.curX - 1, self.curY)
+
+        elif key == Qt.Key_Right:
+            self.key_sequence.append(self.KeyMap[key])
+            self.tryMove(self.curPiece, self.curX + 1, self.curY)
+
+        elif key == Qt.Key_Down:
+            self.key_sequence.append(self.KeyMap[key])
+            self.tryMove(self.curPiece.rotateRight(), self.curX, self.curY)
+
+        elif key == Qt.Key_Up:
+            self.key_sequence.append(self.KeyMap[key])
+            self.tryMove(self.curPiece.rotateLeft(), self.curX, self.curY)
+
+        elif key == Qt.Key_Space:
+            self.key_sequence.append(self.KeyMap[key])
+            self.dropDown()
+
+        elif key == Qt.Key_D:
+            self.oneLineDown()
+
+        else:
+            super(TetrisBoard, self).keyPressEvent(event)
+
+        print('is main...?', self.is_main_board, 'keys...', self.key_sequence)
 
     def timerEvent(self, event):
         '''handles timer event'''
@@ -506,8 +485,3 @@ class Shape(object):
         return result
 
 
-if __name__ == '__main__':
-    app = QApplication([])
-    win = TetrisWindow()
-    win.show()
-    sys.exit(app.exec_())

@@ -42,6 +42,13 @@ class GameWindow(QMainWindow):
         self.query_shape_timer = QBasicTimer()
         self.query_shape_interval = 1000
 
+        self.query_key_seq_timer = QBasicTimer()
+        self.query_key_seq_interval = 500
+
+        self.play_opponent_key_seq_timer = QBasicTimer()
+
+        self.opponent_key_seq = []
+
     def convert_shape_into_sequence(self, shapes):
         seq = ''.join([str(shape.pieceShape) for shape in shapes])
         print(self.is_mainuser, self.is_opponent, seq)
@@ -76,7 +83,6 @@ class GameWindow(QMainWindow):
                     self.query_opponent_timer.stop()
         elif event.timerId() == self.gamestart_timer.timerId():
             self.lbl_countdown.setText(str(self.count_down))
-            self.count_down = self.count_down - 1
 
             if len(self.myboard.shapes) == 0:
                 self.myboard.shapes = self.myboard.generate_random_shapes()
@@ -90,13 +96,20 @@ class GameWindow(QMainWindow):
             if self.count_down == 2:
                 self.query_shape_timer.start(self.query_shape_interval, self)
 
+            if self.count_down == 1:
+                self.myboard.start()
+
             if self.count_down == 0:
                 self.count_down = 3
                 self.lbl_countdown.setText("Go!")
                 self.gamestart_timer.stop()
 
-                self.myboard.start()
+                # self.myboard.start()
                 self.opboard.start()
+
+                self.query_key_seq_timer.start(self.query_key_seq_interval, self)
+
+            self.count_down = self.count_down - 1
         elif event.timerId() == self.query_gamestart_timer.timerId():
             response = querygamestart(self.roomname)
             print('timer, ', '.', response, '.')
@@ -117,8 +130,51 @@ class GameWindow(QMainWindow):
                     print('oppo..', sequence)
                     ss = self.convert_sequence_into_shapes(sequence)
                     self.opboard.backup_shapes = ss
+        elif event.timerId() == self.query_key_seq_timer.timerId():
+            keys = self.myboard.key_sequence
+            if self.is_mainuser:
+                oppo_keys = submitkeyseq(self.mainuser, self.opponent, ''.join([str(key) for key in keys]))
+                self.myboard.key_sequence = []
+                print('oppo..', oppo_keys, 'keys..', keys)
+                if oppo_keys != '':
+                    self.opponent_key_seq = [int(key) for key in oppo_keys]
+                    self.play_opponent_key_seq_timer.start(self.query_key_seq_interval // len(self.opponent_key_seq), self)
+
+            if self.is_opponent:
+                oppo_keys = submitkeyseq(self.opponent, self.mainuser, ''.join([str(key) for key in keys]))
+                self.myboard.key_sequence = []
+                if oppo_keys != '':
+                    print('oppo..', oppo_keys, 'keys..', keys)
+                    self.opponent_key_seq = [int(key) for key in oppo_keys]
+                    self.play_opponent_key_seq_timer.start((self.query_key_seq_interval // len(self.opponent_key_seq)) * 0,9, self)
+        elif event.timerId() == self.play_opponent_key_seq_timer.timerId():
+            if len(self.opponent_key_seq) == 0:
+                self.play_opponent_key_seq_timer.stop()
+
+            #Qt.Key_Left: 0,
+            #Qt.Key_Right: 1,
+            #Qt.Key_Up: 2,
+            #Qt.Key_Down: 3,
+            #Qt.Key_Space: 4
+
+            key = self.opponent_key_seq[0]
+            print('key: ', key)
+            if key == 0:
+                self.opboard.tryMove(self.opboard.curPiece, self.opboard.curX - 1, self.opboard.curY)
+            elif key == 1:
+                self.opboard.tryMove(self.opboard.curPiece, self.opboard.curX + 1, self.opboard.curY)
+            elif key == 3:
+                self.opboard.tryMove(self.opboard.curPiece.rotateRight(), self.opboard.curX, self.opboard.curY)
+            elif key == 2:
+                self.opboard.tryMove(self.opboard.curPiece.rotateLeft(), self.opboard.curX, self.opboard.curY)
+            elif key == 4:
+                self.opboard.dropDown()
+
         else:
             super(GameWindow, self).timerEvent(event)
+
+    def keyPressEvent(self, event):
+        print('key...', event.key())
 
     def test_action(self):
         print('test ')
