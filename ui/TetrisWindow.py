@@ -53,13 +53,15 @@ class TetrisWindow(QMainWindow):
 
 class TetrisBoard(QFrame):
     msg2Statusbar = pyqtSignal(str)
+    outofshape_signal = pyqtSignal()
 
     BoardWidth = 10
     BoardHeight = 22
     Speed = 300
 
-    def __init__(self, parent):
+    def __init__(self, parent, is_main_board):
         super().__init__(parent)
+        self.is_main_board = is_main_board
 
         self.initBoard()
 
@@ -78,7 +80,15 @@ class TetrisBoard(QFrame):
         self.isStarted = False
         self.isPaused = False
         self.clearBoard()
-        print(6)
+
+        self.shapes = [] # self.generate_random_shapes()
+        self.backup_shapes = []
+
+    def generate_random_shapes(self):
+        shapes = [Shape() for i in range(100)]
+        [shape.setRandomShape() for shape in shapes]
+        return shapes
+
 
     def shapeAt(self, x, y):
         '''determines shape at the board position'''
@@ -295,8 +305,18 @@ class TetrisBoard(QFrame):
     def newPiece(self):
         '''creates a new shape'''
 
-        self.curPiece = Shape()
-        self.curPiece.setRandomShape()
+        if len(self.shapes) == 0:
+            print('no shapes')
+            self.shapes = self.backup_shapes
+
+        self.curPiece = self.shapes[0]
+        self.shapes.remove(self.curPiece)
+
+        if len(self.shapes) == 10:
+            if self.is_main_board:
+                self.backup_shapes = self.generate_random_shapes()
+                self.outofshape_signal.emit()
+
         self.curX = TetrisBoard.BoardWidth // 2 + 1
         self.curY = TetrisBoard.BoardHeight - 1 + self.curPiece.minY()
 

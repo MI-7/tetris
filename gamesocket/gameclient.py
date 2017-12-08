@@ -112,6 +112,66 @@ def queryopponent(roomname):
     return response
 
 
+def querymainuser(roomname):
+    s = createsocket(SERVER_HOST, SERVER_PORT)
+    if s is None:
+        sys.exit(-1)
+
+    response = sendcommand(s, ''.join(['querymainuser', ' ', roomname]))
+
+    s.close()
+
+    return response
+
+
+def gamestart(roomname):
+    s = createsocket(SERVER_HOST, SERVER_PORT)
+    if s is None:
+        sys.exit(-1)
+
+    response = sendcommand(s, ''.join(['gamestart', ' ', roomname]))
+
+    s.close()
+
+    return int(response.split()[0])
+
+
+def querygamestart(roomname):
+    s = createsocket(SERVER_HOST, SERVER_PORT)
+    if s is None:
+        sys.exit(-1)
+
+    response = sendcommand(s, ''.join(['querygamestart', ' ', roomname]))
+
+    s.close()
+
+    return int(response.split()[0])
+
+
+def submitshapes(uname, shapes):
+    s = createsocket(SERVER_HOST, SERVER_PORT)
+    if s is None:
+        sys.exit(-1)
+
+    response = sendcommand(s, ''.join(['submitshapes', ' ', uname, ' ', shapes]))
+
+    s.close()
+
+    return int(response.split()[0])
+
+
+def getshapes(uname):
+    s = createsocket(SERVER_HOST, SERVER_PORT)
+    if s is None:
+        sys.exit(-1)
+
+    response = sendcommand(s, ''.join(['getshapes', ' ', uname]))
+
+    s.close()
+
+    return response
+
+
 if __name__ == "__main__":
     login('leon')
     print(listroom())
@@ -124,3 +184,9 @@ if __name__ == "__main__":
     print(listroom())
     print(queryopponent('SNAP'))
     print(queryopponent('SNAP2'))
+    print(querymainuser('SNAP'))
+    print(gamestart('SNAP'))
+    print(querygamestart('SNAP'))
+    print(submitshapes('leon', '0123495858'))
+    print(getshapes('leon'))
+    print(getshapes('leon'))
