@@ -41,6 +41,7 @@ class GameClientHandler(socketserver.BaseRequestHandler):
                 return
             rooms[roomname] = [uname]
             games[roomname] = 0
+            userop[uname] = {}
             tlog(MDEBUG, rooms)
             self.request.sendall(b'0 success')
         elif command == 'joinroom':
@@ -54,6 +55,7 @@ class GameClientHandler(socketserver.BaseRequestHandler):
                 return
 
             rooms[roomname].append(uname)
+            userop[uname] = {}
             tlog(MDEBUG, rooms)
             self.request.sendall(b'0 success')
         elif command == "listroom":
@@ -130,14 +132,30 @@ class GameClientHandler(socketserver.BaseRequestHandler):
             shapes[uname] = ''
             self.request.sendall(response)
         elif command == 'submitkeyseq':
-            tlog(MDEBUG, "data=", data, "; ", "command=", command)
+            print(MDEBUG, "data=", data, "; ", "command=", command, 'userop=', userop)
             uname = data[1]
             oppo = data[2]
-            keyseq = data[3]
+            myshapeid = data[3]
+            opshapeid = data[4]
+            keyseq = ''
 
-            userop[uname] = keyseq
+            if len(data) == 6:
+                keyseq = data[5]
 
-            response = userop[oppo]
+            if myshapeid in userop[uname].keys():
+                userop[uname][myshapeid] = userop[uname][myshapeid] + keyseq
+            else:
+                userop[uname][myshapeid] = keyseq
+
+            response = ''
+            if opshapeid in userop[oppo].keys():
+                response = userop[oppo][opshapeid]
+
+                if len(response) >= 5:
+                    userop[oppo][opshapeid] = response[5:]
+                    response = response[0:5]
+                else:
+                    userop[oppo][opshapeid] = ''
 
             self.request.sendall(bytes(response, 'utf-8'))
 

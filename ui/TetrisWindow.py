@@ -149,51 +149,6 @@ class TetrisBoard(QFrame):
                                 boardTop + (TetrisBoard.BoardHeight - y - 1) * self.squareHeight(),
                                 self.curPiece.shape())
 
-
-    def keyPressEvent(self, event):
-        '''processes key press events'''
-
-        if not self.isStarted or self.curPiece.shape() == Tetrominoe.NoShape:
-            super(TetrisBoard, self).keyPressEvent(event)
-            return
-
-        key = event.key()
-
-        if key == Qt.Key_P:
-            self.pause()
-            return
-
-        if self.isPaused:
-            return
-
-        elif key == Qt.Key_Left:
-            self.key_sequence.append(self.KeyMap[key])
-            self.tryMove(self.curPiece, self.curX - 1, self.curY)
-
-        elif key == Qt.Key_Right:
-            self.key_sequence.append(self.KeyMap[key])
-            self.tryMove(self.curPiece, self.curX + 1, self.curY)
-
-        elif key == Qt.Key_Down:
-            self.key_sequence.append(self.KeyMap[key])
-            self.tryMove(self.curPiece.rotateRight(), self.curX, self.curY)
-
-        elif key == Qt.Key_Up:
-            self.key_sequence.append(self.KeyMap[key])
-            self.tryMove(self.curPiece.rotateLeft(), self.curX, self.curY)
-
-        elif key == Qt.Key_Space:
-            self.key_sequence.append(self.KeyMap[key])
-            self.dropDown()
-
-        elif key == Qt.Key_D:
-            self.oneLineDown()
-
-        else:
-            super(TetrisBoard, self).keyPressEvent(event)
-
-        print('is main...?', self.is_main_board, 'keys...', self.key_sequence)
-
     def timerEvent(self, event):
         '''handles timer event'''
 
@@ -345,6 +300,7 @@ class TetrisBoard(QFrame):
                          x + self.squareWidth() - 1, y + self.squareHeight() - 1)
         painter.drawLine(x + self.squareWidth() - 1,
                          y + self.squareHeight() - 1, x + self.squareWidth() - 1, y + 1)
+
 
 
 class Tetrominoe(object):
